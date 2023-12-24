@@ -12,7 +12,7 @@ class SLPDataset():
 
     def __init__(self, data_path):
         super(SLPDataset, self).__init__()
-        self.pressure_data_dir = os.path.join(data_path, 'SLP_filtered', 'danaLab')
+        self.pressure_data_dir = os.path.join(data_path, 'SLP_filtered', 'danaLab') # change to SLP
         self.slp_real_cleaned_data_dir = os.path.join(data_path, 'slp_real_cleaned')
         self.pmap_data_dir = os.path.join(data_path, 'GT_BP_data', 'slp2')
         self.verts_data_dir = os.path.join(data_path, 'GT_BP_data', 'slp2')

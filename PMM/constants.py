@@ -39,4 +39,5 @@ MODALITY_TO_FEATURE_SIZE = {
 X_BUMP = -0.0143*2
 Y_BUMP = -(0.0286*64*1.04 - 0.0286*64)/2 - 0.0143*2
 
+# Set your base path which has the file structure as shown in the readme
 BASE_PATH = '/home/yeojinj/Desktop/abhishek'
