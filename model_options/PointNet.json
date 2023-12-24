@@ -1,0 +1,16 @@
+{
+    "exp_type"              : "normal",  
+    "exp_run"               : "full-train-test",
+    "modality"              : "both",
+    "v2v_loss"              : true,
+    "pmap_loss"             : true,
+    "contact_loss_fn"       : "ct2",
+    "lambda_v2v_loss"       : 0.25, 
+    "lambda_pmap_loss"      : 0.1,
+    "lambda_contact_loss"   : 0.1,
+    "main_model_fn"         : "PMM5",
+    "model_fn"              : "PME16",
+    "indexing_mode"         : 9,
+    "exp str"               : "full-train-test, mod:both, size:224, PMM5, PME16:9, pose-pmap, v2v:0.25, pmap:0.1, ct2:0.1",
+    "name"                  : "exp1"
+}
