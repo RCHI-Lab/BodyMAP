@@ -19,7 +19,7 @@ The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for res
 
 3. Download SMPL human models. ([Link](https://smpl.is.tue.mpg.de/en)). Place the models (SMPL_MALE.pkl and SMPL_FEAMLE.pkl) in ```BodyMAP/smpl_models``` directory.
 
-4. Change BASE_PATH constant in constants.py based on your file structrure. The BASE_PATH folder should look like:
+4. Change BASE_PATH constant in [constants.py](https://github.com/RCHI-Lab/BodyMAP/blob/main/PMM/constants.py#L43) based on your file structrure. The BASE_PATH folder should look like:
 
     ```
     BodyPressure
