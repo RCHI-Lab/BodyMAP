@@ -9,17 +9,19 @@ BodyMAP leverages a depth and pressure image of a person in bed covered by blank
 
 ## Trained Models 
 
-The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for research purposes. ([Link](Drive link to models))
+The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for research purposes. ([Link](Public drive link: TODO))
 
 ## Data Setup 
 
 1. Follow instructions from [BodyPressure](https://github.com/Healthcare-Robotics/BodyPressure?tab=readme-ov-file#download-data) to download and setup SLP dataset and BodyPressureSD dataset. 
 
-2. Download and extract the 3D pressure maps for the two datasets. ([Link](Public drive link: TODO))
+2. Download the 3D pressure maps for the two datasets and put in ```BodyPressure/data_BP```. ([Link](Public drive link: TODO))
 
 3. Download SMPL human models. ([Link](https://smpl.is.tue.mpg.de/en)). Place the models (SMPL_MALE.pkl and SMPL_FEAMLE.pkl) in ```BodyMAP/smpl_models``` directory.
 
-4. Change BASE_PATH constant in [constants.py](https://github.com/RCHI-Lab/BodyMAP/blob/main/PMM/constants.py#L43) based on your file structrure. The BASE_PATH folder should look like:
+4. Download the parsed data (part segmented faces indexes, v2vP 1EA and v2vP 2EA indexes) and put in ```BodyPressure/data_BP```. ([Link](Public drive link: TODO))
+
+5. Change BASE_PATH constant in [constants.py](https://github.com/RCHI-Lab/BodyMAP/blob/main/PMM/constants.py#L43) based on your file structrure. The BASE_PATH folder should look like:
 
     ```
     BodyPressure
@@ -56,7 +58,7 @@ The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for res
     │   │   .
     │   │   └── train_slp_rside_m_71to80_1939_depthims.p
     │   │   
-    │   └── GT_BP_DATA
+    │   ├── GT_BP_DATA
     |   |   ├── bp2
     |   |       ├── train_slp_lay_f_1to40_8549_gt_pmaps.npy
     |   |       ├── train_slp_lay_f_1to40_8549_gt_vertices.npy
@@ -67,6 +69,10 @@ The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for res
     │   │       ├── 00001
     │   │       .
     │   │       └── 00102
+    |   └── parsed
+    |   |   ├── segmented_mesh_idx_faces.p
+    |   |   ├── EA1.npy
+    |   |   └── EA2.npy
     .
     .
     └── BodyMAP
@@ -85,10 +91,29 @@ The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for res
 * ```cd BodyMAP/PMM```
 
 ```
-python main.py full_path_to_model_config
+python main.py FULL_PATH_TO_MODEL_CONFIG
 ```
 
 The config files for BodyMAP-PointNet and BodyMAP-Conv are provided in the model_config folder. 
+The models are saved in ```PMM_exps/normal``` by default. 
+
+## Model Testing 
+
+1. Save model inferences on the real data 
+```
+cd BodyMAP/PMM && python save_inference.py --model_path FULL_PATH_TO_MODEL_WEIGHTS --opts_path FULL_PATH_TO_MODEL_EXP_JSON --save_path FULL_PATH_TO_SAVE_INFERENCES
+```
+* model_path: Full path of model weights. 
+* opts_path: Full path of the exp.json file created when model is trained.
+* save_path: Full path of the directory to save model inferences.
+
+2. Calculate 3D Pose, 3D Shape and 3D Pressure Map metrics. 
+```
+cd ../scripts && python metrics.py --files_dir FULL_PATH_OF_SAVED_RESULTS_DIR --save_path FULL_PATH_TO_SAVE_METRICS
+```
+* files_dir: Full path to the directory where model inferences are saved (save_path argument from step 1). 
+* save_path: Full path to the directory to save metric results. The metric results are saved in a tensorboard file in this directory.
+
 
 ## Acknowledgements
 
