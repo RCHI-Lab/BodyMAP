@@ -50,7 +50,7 @@ TRANS_NEXT_PD[1, 3] = 1.0
 data_path = os.path.join(BASE_PATH, 'BodyPressure', 'data_BP')
 data_lines = utils.load_data_lines(os.path.join(BASE_PATH, 'BodyMAP', 'data_files', 'real_val.txt'))
 
-PI = utils.load_pickle(os.path.join(BASE_PATH, 'BodyPressure', 'data_BP', 'parsed', 'segmented_mesh_idx_faces.p'))
+PI = np.load(os.path.join(BASE_PATH, 'BodyPressure', 'data_BP', 'parsed', 'segmented_mesh_idx_faces.npy'), allow_pickle=True).item()
 EA1 = np.load(os.path.join(BASE_PATH, 'BodyPressure', 'data_BP', 'parsed', 'EA1.npy'), allow_pickle=True)
 EA2 = np.load(os.path.join(BASE_PATH, 'BodyPressure', 'data_BP', 'parsed', 'EA2.npy'), allow_pickle=True)
 FACES_NP = FACES.squeeze(0).to("cpu").numpy()
@@ -71,8 +71,8 @@ isect_module = MeshMeshIntersection(max_collisions=256)
 
 def create_metric_dict(PI):
     return {
-            '3D MPJPE' : torch.tensor(0).float(),
-            '3D PVE' : torch.tensor(0).float(),
+            'MPJPE' : torch.tensor(0).float(),
+            'PVE' : torch.tensor(0).float(),
             'height' : torch.tensor(0).float(),
             'chest' : torch.tensor(0).float(),
             'waist' : torch.tensor(0).float(),
@@ -165,7 +165,7 @@ def get_area_norm(verts, gt=False):
 
 def get_EA_pressure(pmap, ea):
     ea_pmap = torch.zeros_like(pmap)
-    for i, indexes in enumerate(nn):
+    for i, indexes in enumerate(ea):
         ea_pmap[i] = pmap[indexes].mean()
     return ea_pmap
 
@@ -284,11 +284,11 @@ if __name__ == '__main__':
     metric_overall = create_metric_dict(PI)
     
     for cover_str in tqdm(['uncover', 'cover1', 'cover2'], desc='cover strs'):
-        data_pressure_x, 
-        data_depth_x, 
-        data_label_y, 
-        data_pmap_y, 
-        data_verts_y, 
+        data_pressure_x, \
+        data_depth_x, \
+        data_label_y, \
+        data_pmap_y, \
+        data_verts_y, \
         data_names_y = SLPDataset(data_path).prepare_dataset(data_lines, 
                                                             cover_str, 
                                                             load_verts=True)
@@ -312,10 +312,10 @@ if __name__ == '__main__':
 
             pd_verts = np.load(os.path.join(model_data_path, f'{int(name_split[2]):05d}', f'{cover_str}', f'{int(name_split[-1]):06d}_pd_vertices.npy'))
             pd_verts = torch.tensor(pd_verts).float().reshape(-1, 3)
-            pd_pmap = np.load(os.path.join(model_data_path, f'{int(name_split[2]):05d}', f'{cover_str}', f'{int(name_split[-1]):06d}_pd_pmap_pdp.npy'))
+            pd_pmap = np.load(os.path.join(model_data_path, f'{int(name_split[2]):05d}', f'{cover_str}', f'{int(name_split[-1]):06d}_pd_pmap.npy'))
             pd_pmap = torch.tensor(pd_pmap).float()
             pd_jtr = np.load(os.path.join(model_data_path, f'{int(name_split[2]):05d}', f'{cover_str}', f'{int(name_split[-1]):06d}_pd_jtr.npy'))
-            pd_jtr = torch.tensor(pd_pmap.reshape(24, 3)).float()
+            pd_jtr = torch.tensor(pd_jtr.reshape(24, 3)).float()
             pd_betas = torch.tensor(np.load(os.path.join(model_data_path, f'{int(name_split[2]):05d}', f'{cover_str}', f'{int(name_split[-1]):06d}_pd_betas.npy'))).float().to(DEVICE)
             pd_rest_verts = viz_utils.get_rest_verts(pd_betas, label[157]).unsqueeze(0)
             pd_height, pd_chest, pd_waist, pd_hips = compute_anatomy(pd_rest_verts)
@@ -343,21 +343,21 @@ if __name__ == '__main__':
             loss_pmap_2ea = torch.nn.functional.mse_loss(pd_pmap_2ea * area_norm_pd, gt_pmap_2ea * area_norm_gt, reduction='none')
 
             for mdict in [metric_dict, metric_overall]:
-                metric_overall['3D MPJPE'] += loss_jtr.sum()
-                metric_overall['3D PVE'] += loss_verts.sum()
+                mdict['MPJPE'] += loss_jtr.sum()
+                mdict['PVE'] += loss_verts.sum()
                 mdict['height'] += loss_height.sum()
                 mdict['chest'] += loss_chest.sum()
                 mdict['waist'] += loss_waist.sum()
                 mdict['hips'] += loss_hips.sum()
-                metric_overall['v2vP'] += loss_pmap.sum()
-                metric_overall['v2vP_1EA'] += loss_pmap_1ea.sum()
-                metric_overall['v2vP_2EA'] += loss_pmap_2ea.sum()
-                metric_overall['count'] += 1
+                mdict['v2vP'] += loss_pmap.sum()
+                mdict['v2vP_1EA'] += loss_pmap_1ea.sum()
+                mdict['v2vP_2EA'] += loss_pmap_2ea.sum()
+                mdict['count'] += 1
                 for key in PI:
-                    metric_overall['parts_v2vP'][key] += loss_pmap[PI[key]].sum()
+                    mdict['parts_v2vP'][key] += loss_pmap[PI[key]].sum()
 
-        metric_dict['3D MPJPE'] = round(((metric_dict['3D MPJPE']/(metric_dict['count']*24))*1000).item(), 2)
-        metric_dict['3D PVE'] = round(((metric_dict['3D PVE']/(metric_dict['count']*6890))*1000).item(), 2)
+        metric_dict['MPJPE'] = round(((metric_dict['MPJPE']/(metric_dict['count']*24))*1000).item(), 2)
+        metric_dict['PVE'] = round(((metric_dict['PVE']/(metric_dict['count']*6890))*1000).item(), 2)
         metric_dict['height'] = round((metric_dict['height']/metric_dict['count']).item(), 2)
         metric_dict['chest'] = round((metric_dict['chest']/metric_dict['count']).item(), 2)
         metric_dict['waist'] = round((metric_dict['waist']/metric_dict['count']).item(), 2)
@@ -374,8 +374,8 @@ if __name__ == '__main__':
 
         writer_metric_overall.add_text(f'{cover_str}', json.dumps(metric_dict))
 
-    metric_overall['3D MPJPE'] = round(((metric_overall['3D MPJPE']/(metric_overall['count']*24))*1000).item(), 2)
-    metric_overall['3D PVE'] = round(((metric_overall['3D PVE']/(metric_overall['count']*6890))*1000).item(), 2)
+    metric_overall['MPJPE'] = round(((metric_overall['MPJPE']/(metric_overall['count']*24))*1000).item(), 2)
+    metric_overall['PVE'] = round(((metric_overall['PVE']/(metric_overall['count']*6890))*1000).item(), 2)
     metric_overall['height'] = round((metric_overall['height']/metric_overall['count']).item(), 2)
     metric_overall['chest'] = round((metric_overall['chest']/metric_overall['count']).item(), 2)
     metric_overall['waist'] = round((metric_overall['waist']/metric_overall['count']).item(), 2)

@@ -186,8 +186,7 @@ def generate_scene(mesh, rotate=False):
     return im_to_show
 
 
-def render_scene(mesh, camera_pose=None, is_vid=False, is_wire=False, rotate=False):
-    is_wire = True
+def render_scene(mesh, camera_pose=None, rotate=False):
     if rotate:
         lval = 300
         HUMAN_MAT = pyrender.MetallicRoughnessMaterial(baseColorFactor=[0.05, 0.05, 0.25, 0.5], metallicFactor=0.6, roughnessFactor=0.5, alphaMode='BLEND')
@@ -195,23 +194,18 @@ def render_scene(mesh, camera_pose=None, is_vid=False, is_wire=False, rotate=Fal
         lval = 150
         HUMAN_MAT = pyrender.MetallicRoughnessMaterial(baseColorFactor=[0.05, 0.05, 0.25, 0.5], metallicFactor=0.6, roughnessFactor=0.5, alphaMode='BLEND')
 
-    if is_vid:
-        scene = pyrender.Scene(ambient_light=(250, 250, 250))
-    else:
-        scene = pyrender.Scene(ambient_light=(lval, lval, lval))
-
+    
+    scene = pyrender.Scene(ambient_light=(lval, lval, lval))
     color_mesh = pyrender.Mesh.from_trimesh(
             mesh,
             smooth=False)
-
     scene.add(color_mesh)
-    if is_wire:
-        wire_mesh = pyrender.Mesh.from_trimesh(
-            mesh,
-            material=HUMAN_MAT,
-            wireframe=True,
-            smooth=False)
-        scene.add(wire_mesh)
+    wire_mesh = pyrender.Mesh.from_trimesh(
+        mesh,
+        material=HUMAN_MAT,
+        wireframe=True,
+        smooth=False)
+    scene.add(wire_mesh)
     if camera_pose is None:
         camera_pose = np.eye(4)
 
@@ -246,30 +240,29 @@ def render_scene(mesh, camera_pose=None, is_vid=False, is_wire=False, rotate=Fal
     camera = pyrender.OrthographicCamera(xmag=magnify, ymag=magnify)
 
     scene.add(camera, pose=camera_pose)
-    if not is_vid:
-        light = pyrender.SpotLight(color=np.ones(3), intensity=50.0, innerConeAngle=np.pi / 10.0, outerConeAngle=np.pi / 2.0)
-        # light = pyrender.PointLight(intensity=125)
-        light_pose = np.copy(camera_pose)
-        light_pose[0, 3] = 0.8
-        light_pose[1, 3] = -0.5
-        light_pose[2, 3] = -2.5
+    light = pyrender.SpotLight(color=np.ones(3), intensity=50.0, innerConeAngle=np.pi / 10.0, outerConeAngle=np.pi / 2.0)
+    light_pose = np.copy(camera_pose)
+    light_pose[0, 3] = 0.8
+    light_pose[1, 3] = -0.5
+    light_pose[2, 3] = -2.5
 
-        light_pose2 = np.copy(camera_pose)
-        light_pose2[0, 3] = 2.5
-        light_pose2[1, 3] = 1.0
-        light_pose2[2, 3] = -5.0
+    light_pose2 = np.copy(camera_pose)
+    light_pose2[0, 3] = 2.5
+    light_pose2[1, 3] = 1.0
+    light_pose2[2, 3] = -5.0
 
-        light_pose3 = np.copy(camera_pose)
-        light_pose3[0, 3] = 1.0
-        light_pose3[1, 3] = 5.0
-        light_pose3[2, 3] = -4.0
+    light_pose3 = np.copy(camera_pose)
+    light_pose3[0, 3] = 1.0
+    light_pose3[1, 3] = 5.0
+    light_pose3[2, 3] = -4.0
 
-        scene.add(light, pose=light_pose)
-        scene.add(light, pose=light_pose2)
-        scene.add(light, pose=light_pose3)
+    scene.add(light, pose=light_pose)
+    scene.add(light, pose=light_pose2)
+    scene.add(light, pose=light_pose3)
 
     r = pyrender.OffscreenRenderer(600, 880 + MIDDLE_FILLER)
     render, _ = r.render(scene)
+    render = np.array(render)[40:560, 60:300, :]
     return render
 
 

@@ -41,8 +41,8 @@ if __name__ == '__main__':
     data_path = os.path.join(BASE_PATH, "BodyPressure/data_BP")
     val_file = os.path.join(BASE_PATH, "BodyMAP/data_files/real_val.txt")
 
-    test_loader, _ = prepare_loader(data_path, [val_file, None], args['batch_size'], args['image_size_type'], \
-                                'normal', args['normalize_pressure'], args['normalize_depth'], \
+    test_loader, _ = prepare_loader(data_path, [val_file, None], opts['batch_size'], opts['image_size_type'], \
+                                'normal', opts['normalize_pressure'], opts['normalize_depth'], \
                                 False, False, training=False)
 
     model.eval()
@@ -55,7 +55,7 @@ if __name__ == '__main__':
             batch_mesh_pred, batch_pmap_pred, _, _ = model.infer(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
             batch_mesh_pred['out_joint_pos'] = batch_mesh_pred['out_joint_pos'].reshape(-1, 24, 3)
 
-            if args['normalize_pressure']:
+            if opts['normalize_pressure']:
                 batch_pmap_pred *= MAX_PMAP_REAL
 
             for pd_betas, pd_jtr, pd_verts, pd_pmap, name in zip(batch_mesh_pred['out_betas'], 
