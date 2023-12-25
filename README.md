@@ -74,7 +74,7 @@ The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for res
     |   |   ├── EA1.npy
     |   |   └── EA2.npy
     .
-    .This argument is optional. When passed it plots the model inferences, 
+    .
     └── BodyMAP
         ├── assets
         ├── data_files
