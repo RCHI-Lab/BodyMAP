@@ -1,0 +1,19 @@
+{
+    "exp_type"              : "normal",  
+    "exp_run"               : "full-train-test",
+    "modality"              : "both",
+    "is_affine"             : false, 
+    "is_erase"              : false,
+    "smpl_loss"             : false,
+    "pmap_loss"             : true,
+    "infer_smpl"            : true, 
+    "infer_pmap"            : true, 
+    "WS"                    : true,
+    "lambda_proj_loss"      : 1.0, 
+    "lambda_preg_loss"      : 500.0, 
+    "main_model_fn"         : "WSPMM5",
+    "model_fn"              : "PME16",
+    "exp str"               : "WS_pressure, full-train-test, mod:both, size:224, WSPMM5, PME16, pressure, v2v:0.25",
+    "name"                  : "WS_pressure",
+    "load_MOD1_path"        : "./PMM_exps/overfit/exps/WS_mesh/modelPMM_0.pth"
+}

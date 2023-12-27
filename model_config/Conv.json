@@ -10,6 +10,6 @@
     "lambda_contact_loss"   : 0.1,
     "main_model_fn"         : "PMM1",
     "model_fn"              : "PME13",
-    "exp str"               : "full-train-test, mod:both, size:224, PMM1, PME13, pose-pmap, v2v:0.25, pmap:0.1, ct2:0.1",
-    "name"                  : "exp2"
+    "exp str"               : "BodyMAP_Conv, full-train-test, mod:both, size:224, PMM1, PME13, pose-pmap, v2v:0.25, pmap:0.1, ct2:0.1",
+    "name"                  : "BodyMAP_Conv"
 }

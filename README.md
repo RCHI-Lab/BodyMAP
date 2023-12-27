@@ -93,10 +93,27 @@ The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for res
 
 ```
 python main.py FULL_PATH_TO_MODEL_CONFIG
+
 ```
 
 The config files for BodyMAP-PointNet and BodyMAP-Conv are provided in the model_config folder. 
-The models are saved in ```PMM_exps/normal``` by default. 
+The models are saved in ```PMM_exps/normal``` by default. (outside of BodyMAP directory)
+
+
+## Model Training without supervision 
+
+1. Train mesh regressor used for BodyMAP-WS
+```python
+cd BodyMAP/PMM python main.py ../model_config/WS_mesh.json
+```
+
+2. Update path of saved model weights in model_config/WS_Pressure.json file.
+
+3. Train BodyMAP-WS: 3D pressure map regressor
+```python
+python main.py ../model_config/WS_Pressure.json
+```
+The models are saved in ```PMM_exps/normal``` by default. (outside of BodyMAP directory)
 
 ## Model Testing 
 

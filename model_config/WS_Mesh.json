@@ -1,0 +1,16 @@
+{
+    "exp_type"              : "normal",  
+    "exp_run"               : "full-train-test",
+    "modality"              : "both",
+    "smpl_loss"             : true,
+    "pmap_loss"             : false,
+    "infer_smpl"            : true, 
+    "infer_pmap"            : false, 
+    "WS"                    : true,
+    "lambda_smpl_loss"      : 1.0, 
+    "lambda_v2v_loss"       : 0.25, 
+    "main_model_fn"         : "WSPMM2",
+    "model_fn"              : "WSPME1",
+    "exp str"               : "WS_mesh, full-train-test, mod:both, size:224, WSPMM2, WSPME1, pose, v2v:0.25",
+    "name"                  : "WS_mesh"
+}

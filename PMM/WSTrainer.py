@@ -10,30 +10,38 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
-from PMMModel import PMMModel as PMM1
-from PMMModel5 import PMMModel as PMM5
+from WSPMMModel2 import WSPMMModel as WSPMM2
+from WSPMMModel5 import WSPMMModel as WSPMM5
 from PMMTrainerDataset import prepare_dataloaders
 from PMMInferDataset import prepare_loader as prepare_inferloader
 from PMMInfer import PMMInfer
 from PMMMetric import PMMMetric
 from constants import *
+import loss_utils
+
 
 
 MODEL_FN_DICT = {
-    'PMM1' : PMM1,
-    'PMM5' : PMM5,
+    'WSPMM2' : WSPMM2,
+    'WSPMM5' : WSPMM5,
 }
 
 
-class PMMTrainer():
+class WSTrainer():
     
     def __init__(self, args):
         self.args = args 
-        print (f'Starting PM Trainer Object for {self.args["name"]} {self.args["exp_type"]} model')
+        print (f'Starting WS PM Trainer Object for {self.args["name"]} {self.args["exp_type"]} model')
 
         self.criterion = nn.L1Loss(reduction='mean')
         self.criterion_mse = nn.MSELoss(reduction='mean')
         self.criterion_contact = nn.NLLLoss(reduction='mean')
+
+        if self.args.get('load_MOD1_path', None) is not None:
+            self.MOD1 = torch.load(self.args['load_MOD1_path']).to(DEVICE)
+            self.MOD1.eval()
+        else:
+            self.MOD1 = None 
 
     def _load_data(self):
         start_time = time.time()
@@ -63,10 +71,11 @@ class PMMTrainer():
         self.args['train_len'] = len(train_dataset)
         self.args['val_len'] = len(val_dataset)
 
-    def _get_losses(self, mesh_pred, pmap_pred, contact_pred, labels_gt, mesh_gt, pmap_gt):
+    def _get_losses(self, mesh_pred, pmap_pred, mesh_gt, labels_gt, pmap_gt, pi_org):
         if self.args['smpl_loss']:
             betas_loss = self.criterion(mesh_pred['out_betas'], labels_gt[:, 72:82])
 
+            # try changing to l1 as in paper
             joint_angles_loss = self.criterion_mse(mesh_pred['out_joint_angles'][:, 3:], labels_gt[:, 85:154]) # skip root rotation from loss
 
             root_angle_loss = self.criterion(mesh_pred['out_root_angles'][:, :3], torch.cos(labels_gt[:, 82:85])) + \
@@ -74,76 +83,83 @@ class PMMTrainer():
 
             joint_pos_loss = ((mesh_gt['out_joint_pos'] - mesh_pred['out_joint_pos']) + 1e-7) ** 2
             joint_pos_loss = joint_pos_loss.reshape(-1, 24, 3).sum(dim=-1).sqrt().mean()
-            if self.args['v2v_loss']:
-                v2v_loss = ((mesh_gt['out_verts'] - mesh_pred['out_verts'])**2).sum(dim=-1).sqrt().mean()
-            else:
-                v2v_loss = torch.tensor(0).float().to(DEVICE) 
 
+            v2v_loss = ((mesh_gt['out_verts'] - mesh_pred['out_verts'])**2).sum(dim=-1).sqrt().mean()
 
             smpl_loss = betas_loss * (1/1.728158146914805) + \
                     joint_angles_loss * (1/0.29641429463719227) + \
                     root_angle_loss * (1/0.3684988513298487) + \
                     joint_pos_loss * (1/0.1752780723422608)
         else:
-            betas_loss = joint_angles_loss = root_angle_loss = joint_pos_loss = v2v_loss = smpl_loss = torch.tensor(0).float().to(DEVICE)
+            v2v_loss = smpl_loss = torch.tensor(0).float().to(DEVICE)
 
         if self.args['pmap_loss']:
-            if self.args['contact_loss_fn'] == 'ct2':
-                pmap_pred = pmap_pred * contact_pred.argmax(dim=1)
-            pmap_loss = self.criterion_mse(pmap_pred*self.args['pmap_loss_mult'], pmap_gt*self.args['pmap_loss_mult'])
-        else:
-            pmap_loss = torch.tensor(0).float().to(DEVICE) 
+            pd_proj_pressure = loss_utils.get_projected_pressure(mesh_pred['out_verts'].clone(), pmap_pred)
+            gt_proj_pressure = pi_org.clone()
 
-        if self.args['contact_loss_fn'] != 'ct0':
-            target_contact = (pmap_gt > 0).long()
-            contact_loss = self.criterion_contact(contact_pred, target_contact)
+            proj_pressure_loss = self.criterion_mse(pd_proj_pressure, gt_proj_pressure)
+            
+            up_halves = pmap_pred[mesh_pred['out_verts'][:, :, -1] < 0]
+            pmap_reg_loss = self.criterion_mse(up_halves, torch.zeros_like(up_halves))
         else:
-            contact_loss = torch.tensor(0).float().to(DEVICE)
+            proj_pressure_loss = torch.tensor(0).float().to(DEVICE)
+            pmap_reg_loss = torch.tensor(0).float().to(DEVICE)
 
-        loss = smpl_loss + \
+        loss =  self.args['lambda_smpl_loss'] * smpl_loss + \
                 self.args['lambda_v2v_loss'] * v2v_loss * (1/0.1752780723422608) + \
-                self.args['lambda_pmap_loss'] * pmap_loss * (1/8.534489) + \
-                self.args['lambda_contact_loss'] * contact_loss * (1/0.41796643)
+                self.args['lambda_proj_loss'] * proj_pressure_loss + \
+                self.args['lambda_preg_loss'] * pmap_reg_loss
 
         return {
-            'total_loss'        : loss, 
-            'betas_loss'        : betas_loss,
-            'joint_angles_loss' : joint_angles_loss,
-            'root_angle_loss'   : root_angle_loss,
-            'joint_pos_loss'    : joint_pos_loss,
+            'total_loss'        : loss,
+            'smpl_loss'         : smpl_loss,
             'v2v_loss'          : v2v_loss,
-            'pmap_loss'         : pmap_loss,
-            'contact_loss'      : contact_loss,
+            'proj_pressure_loss': proj_pressure_loss,
+            'pmap_reg_loss'     : pmap_reg_loss,
         }
 
     def _train_epoch(self, model):
         model.train()
         running_losses = defaultdict(float)
         with torch.autograd.set_detect_anomaly(True):
-            for _, batch_pressure_images, _, batch_depth_images, batch_labels, batch_pmap, _, _ in iter(self.train_loader):
+            for batch_org_pressure_images, \
+                batch_pressure_images, \
+                batch_org_depth_images, \
+                batch_depth_images, batch_labels, batch_pmap, _, _ in iter(self.train_loader):
                 self.opt.zero_grad()
 
+                batch_org_pressure_images = batch_org_pressure_images.to(DEVICE)
                 batch_pressure_images = batch_pressure_images.to(DEVICE)
                 batch_depth_images = batch_depth_images.to(DEVICE)
                 batch_labels = batch_labels.to(DEVICE)
-                if self.args['pmap_loss']:
-                    batch_pmap = batch_pmap.to(DEVICE)
+                batch_pmap = batch_pmap.to(DEVICE)
                 batch_labels_copy = batch_labels.clone()
 
-                batch_mesh_pred, batch_pmap_pred, batch_contact_pred, _ = model(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
-                mesh_gt = model.mesh_infer_gt(torch.cat((
-                                        batch_labels[:, 72:82], 
-                                        batch_labels[:, 154:157],
-                                        torch.cos(batch_labels[:, 82:85]),
-                                        torch.sin(batch_labels[:, 82:85]),
-                                        batch_labels[:, 85:154],
-                                    ), axis=1), batch_labels[:, 157:159])
+                if self.MOD1 is not None:
+                    batch_mesh_pred, _, img_feat, _ = self.MOD1.infer(batch_depth_images.clone(), batch_pressure_images.clone(), batch_labels[:, 157:159].clone())
+                    mesh_gt = self.MOD1.mesh_infer_gt(torch.cat((
+                                            batch_labels[:, 72:82], 
+                                            batch_labels[:, 154:157],
+                                            torch.cos(batch_labels[:, 82:85]),
+                                            torch.sin(batch_labels[:, 82:85]),
+                                            batch_labels[:, 85:154],
+                                        ), axis=1), batch_labels[:, 157:159])
+                    _, batch_pmap_pred, _, _ = model(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159], batch_mesh_pred['out_verts'].clone(), img_feat)
+                else:
+                    batch_mesh_pred, batch_pmap_pred, _, _ = model(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
+                    mesh_gt = model.mesh_infer_gt(torch.cat((
+                                            batch_labels[:, 72:82], 
+                                            batch_labels[:, 154:157],
+                                            torch.cos(batch_labels[:, 82:85]),
+                                            torch.sin(batch_labels[:, 82:85]),
+                                            batch_labels[:, 85:154],
+                                        ), axis=1), batch_labels[:, 157:159])
                 mesh_gt = {
-                    'out_verts' : mesh_gt['out_verts'],
-                    'out_joint_pos' : mesh_gt['out_joint_pos']
-                }
-                
-                losses = self._get_losses(batch_mesh_pred, batch_pmap_pred, batch_contact_pred, batch_labels_copy, mesh_gt, batch_pmap)
+                            'out_verts' : mesh_gt['out_verts'],
+                            'out_joint_pos' : mesh_gt['out_joint_pos']
+                        }
+
+                losses = self._get_losses(batch_mesh_pred, batch_pmap_pred, mesh_gt, batch_labels_copy, batch_pmap, batch_org_pressure_images)
                 for k in losses:
                     running_losses[k] += losses[k].item()
                 losses['total_loss'].backward()
@@ -157,35 +173,31 @@ class PMMTrainer():
         model.eval()
         running_losses = defaultdict(float)
         with torch.no_grad():
-            for _, batch_pressure_images, _, batch_depth_images, batch_labels, batch_pmap, batch_verts, _ in iter(self.val_loader):
+            for batch_org_pressure_images, \
+                batch_pressure_images, \
+                batch_org_depth_images, \
+                batch_depth_images, \
+                batch_labels, batch_pmap, batch_verts, _ in iter(self.val_loader):
 
+                batch_org_pressure_images = batch_org_pressure_images.to(DEVICE)
                 batch_pressure_images = batch_pressure_images.to(DEVICE)
                 batch_depth_images = batch_depth_images.to(DEVICE)
                 batch_labels = batch_labels.to(DEVICE)
                 batch_verts = batch_verts.to(DEVICE)
-                if self.args['pmap_loss']:
-                    batch_pmap = batch_pmap.to(DEVICE)
+                batch_pmap = batch_pmap.to(DEVICE)
                 batch_labels_copy = batch_labels.clone()
                 mesh_gt = {
                     'out_verts' : batch_verts,
                     'out_joint_pos' : batch_labels_copy[:, :72]/1000.,
                 }
 
-                # mesh_gt = model.mesh_infer_gt(torch.cat((
-                #                         batch_labels[:, 72:82], 
-                #                         batch_labels[:, 154:157],
-                #                         torch.cos(batch_labels[:, 82:85]),
-                #                         torch.sin(batch_labels[:, 82:85]),
-                #                         batch_labels[:, 85:154],
-                #                     ), axis=1), batch_labels[:, 157:159])
-                # mesh_gt = {
-                #     'out_verts' : mesh_gt['out_verts'],
-                #     'out_joint_pos' : mesh_gt['out_joint_pos']
-                # }
+                if self.MOD1 is not None:
+                    batch_mesh_pred, _, img_feat, _ = self.MOD1.infer(batch_depth_images.clone(), batch_pressure_images.clone(), batch_labels[:, 157:159].clone())
+                    _, batch_pmap_pred, _, _ = model(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159], batch_mesh_pred['out_verts'].clone(), img_feat)
+                else:
+                    batch_mesh_pred, batch_pmap_pred, _, _ = model(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
 
-                batch_mesh_pred, batch_pmap_pred, batch_contact_pred, _ = model(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
-
-                losses = self._get_losses(batch_mesh_pred, batch_pmap_pred, batch_contact_pred, batch_labels_copy, mesh_gt, batch_pmap)
+                losses = self._get_losses(batch_mesh_pred, batch_pmap_pred, mesh_gt, batch_labels_copy, batch_pmap, batch_org_pressure_images)
                 for k in losses:
                     running_losses[k] += losses[k].item()
         for k in running_losses:
@@ -207,24 +219,24 @@ class PMMTrainer():
             self.writer.add_scalar('Learning_rate', self.opt.param_groups[0]['lr'], e)
             
             if e % self.args['epochs_val_viz'] == 0:
-                PMMInfer(model, self.infer_loader, writer=self.writer, save_gt=(e==0), epoch=e, pmap_norm=self.args['normalize_pressure'], infer_pmap=self.args['pmap_loss'], infer_smpl=self.args['smpl_loss'])
+                PMMInfer(model, self.infer_loader, writer=self.writer, save_gt=(e==0), epoch=e, pmap_norm=self.args['normalize_pressure'], infer_pmap=self.args['infer_pmap'], infer_smpl=self.args['infer_smpl'], MOD1=self.MOD1)
 
             if e % self.args['epochs_metric'] == 0:
-                PMMMetric(model, self.metric_loader, writer=self.writer, epoch=e, pmap_norm=self.args['normalize_pressure'], infer_pmap=self.args['pmap_loss'], infer_smpl=self.args['smpl_loss'])
+                PMMMetric(model, self.metric_loader, writer=self.writer, epoch=e, pmap_norm=self.args['normalize_pressure'], infer_pmap=self.args['infer_pmap'], infer_smpl=self.args['infer_smpl'], MOD1=self.MOD1)
             
             if e % self.args['epochs_save'] == 0 or e % self.args['epochs_metric'] == 0:
                 self._save_model(model, e)
                 model.to(DEVICE)
 
-        PMMInfer(model, self.infer_loader, writer=self.writer, save_gt=False, epoch=self.args['epochs'], pmap_norm=self.args['normalize_pressure'], infer_pmap=self.args['pmap_loss'], infer_smpl=self.args['smpl_loss'])
-        metric = PMMMetric(model, self.metric_loader, writer=self.writer, epoch=self.args['epochs'], pmap_norm=self.args['normalize_pressure'], infer_pmap=self.args['pmap_loss'], infer_smpl=self.args['smpl_loss'])
+        PMMInfer(model, self.infer_loader, writer=self.writer, save_gt=(e==0), epoch=e, pmap_norm=self.args['normalize_pressure'], infer_pmap=self.args['infer_pmap'], infer_smpl=self.args['infer_smpl'], MOD1=self.MOD1)
+        metric = PMMMetric(model, self.metric_loader, writer=self.writer, epoch=e, pmap_norm=self.args['normalize_pressure'], infer_pmap=self.args['infer_pmap'], infer_smpl=self.args['infer_smpl'], MOD1=self.MOD1)
         self.args['metric'] = metric
         self._save_model(model, self.args['epochs'])
         return model
 
     def _save_model(self, model, epoch):
         model = model.to("cpu")
-        if self.args['exp_run'] == 'full-train-test' and epoch % self.args['epochs_metric'] == 0: # saving model only in test run
+        if epoch % self.args['epochs_metric'] == 0:
             torch.save(model, os.path.join(self.output_path, f'modelPMM_{epoch}.pth'))
         torch.save({
             'epoch' : epoch,
@@ -242,7 +254,7 @@ class PMMTrainer():
         self._load_data()
         run_folder = 'runs'
         model_folder = self.args['name']
-        self.args['save_path'] = os.path.join(self.args['save_path'], self.args['exp_type'])
+        self.args['save_path'] = os.path.join(self.args['save_path'], f'{self.args["exp_type"]}')
 
         self.output_path = os.path.join(self.args['save_path'], 'exps', model_folder)
         for path in [self.output_path]:
@@ -261,15 +273,16 @@ class PMMTrainer():
                         feature_size=self.args['feature_size'], \
                         out_size=self.args['out_size'], \
                         vertex_size=self.args['vertex_size'], \
-                        batch_size=self.args['batch_size'], # required for mesh estimator \ 
+                        batch_size=self.args['batch_size'], \
                         modality=self.args['modality'], \
-                        use_contact=self.args['contact_loss_fn'] != 'ct0',\
-                        indexing_mode=self.args['indexing_mode'], 
-                        )
+                        indexing_mode=self.args['indexing_mode'])
         for param in model.parameters():
             param.requires_grad = True
-        for param in model.mesh_model.parameters():
-            param.requires_grad = False
+        try:
+            for param in model.mesh_model.parameters():
+                param.requires_grad = False
+        except:
+            pass
         self.opt = optim.Adam(model.parameters(), lr=self.args['lr'], weight_decay=self.args['weight_decay'])
         return model
 

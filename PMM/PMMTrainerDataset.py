@@ -126,11 +126,6 @@ class PMMTrainerDataset(Dataset):
             for cover_str in ['uncover', 'cover1', 'cover2']:
                 data_pressure_x, data_depth_x, data_label_y, data_pmap_y, data_verts_y, data_names_y = \
                     SLPDataset(self.data_path).prepare_dataset(data_lines, cover_str, load_verts=self.load_verts)
-                if self.normalize_pressure:
-                    data_pressure_x = data_pressure_x/MAX_PRESSURE_REAL
-                    data_pmap_y = data_pmap_y/MAX_PMAP_REAL
-                if self.normalize_depth:
-                    data_depth_x = data_depth_x/MAX_DEPTH_REAL
                 self._concat_data_returns((data_pressure_x, data_depth_x, data_label_y, data_pmap_y, data_verts_y, data_names_y))
             
             if self.exp_type == 'overfit':
@@ -142,11 +137,6 @@ class PMMTrainerDataset(Dataset):
             data_lines = utils.load_data_lines(synth_file)
             data_pressure_x, data_depth_x, data_label_y, data_pmap_y, data_verts_y, data_names_y = \
                 BPDataset(self.data_path).prepare_dataset(data_lines, load_verts=self.load_verts)
-            if self.normalize_pressure:
-                data_pressure_x = data_pressure_x/MAX_PRESSURE_SYNTH
-                data_pmap_y = data_pmap_y/MAX_PMAP_SYNTH
-            if self.normalize_depth:
-                data_depth_x = data_depth_x/MAX_DEPTH_SYNTH
             self._concat_data_returns((data_pressure_x, data_depth_x, data_label_y, data_pmap_y, data_verts_y, data_names_y))
 
             if self.exp_type == 'overfit':
@@ -200,12 +190,29 @@ class PMMTrainerDataset(Dataset):
         verts
         file_name
         '''
-        pressure_image = self.data_pressure_x[index]
-        depth_image = self.data_depth_x[index]
+        file_name = self.data_names_y[index]
         label = self.data_label_y[index]
         pmap = self.data_pmap_y[index]
+
+        org_pressure_image = self.data_pressure_x[index].clone()
+        pressure_image = self.data_pressure_x[index].clone()
+        if self.normalize_pressure:
+            if file_name[0] == 'r':
+                pressure_image /= MAX_PRESSURE_REAL
+                pmap /= MAX_PMAP_REAL
+            else:
+                pressure_image /= MAX_PRESSURE_SYNTH
+                pmap /= MAX_PMAP_SYNTH
+        
+        org_depth_image = self.data_depth_x[index].clone()
+        depth_image = self.data_depth_x[index].clone()
+        if self.normalize_depth:
+            if file_name[0] == 'r':
+                depth_image /= MAX_DEPTH_REAL
+            else:
+                depth_image /= MAX_DEPTH_SYNTH
+        
         label, pressure_image, depth_image, pmap = self._apply_transforms(label.copy(), pressure_image.clone(), depth_image.clone(), pmap.clone())
         verts = self.data_verts_y[index] if self.load_verts else np.array([])
-        file_name = self.data_names_y[index]
-        return pressure_image.float(), depth_image.float(), label, pmap, verts, file_name
+        return org_pressure_image, pressure_image.float(), org_depth_image, depth_image.float(), label, pmap, verts, file_name
 

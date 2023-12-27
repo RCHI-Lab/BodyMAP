@@ -7,7 +7,7 @@ import viz_utils
 
 
 def PMMInfer(model, infer_loader, writer=None, save_gt=False, \
-            epoch=-1, pmap_norm=False, infer_pmap=False, infer_smpl=False):
+            epoch=-1, pmap_norm=False, infer_pmap=False, infer_smpl=False, MOD1=None):
     model.eval()
     with torch.no_grad():
         for batch_original_pressure, \
@@ -22,7 +22,11 @@ def PMMInfer(model, infer_loader, writer=None, save_gt=False, \
             batch_depth_images = batch_depth_images.to(DEVICE)
             batch_pressure_images = batch_pressure_images.to(DEVICE)
             
-            mesh_pred, pmap_pred, _, _ = model.infer(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
+            if MOD1 is not None:
+                mesh_pred, _, img_feat, _ = MOD1.infer(batch_depth_images.clone(), batch_pressure_images.clone(), batch_labels[:, 157:159].clone())
+                _, pmap_pred, _, _ = model(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159], mesh_pred['out_verts'].clone(), img_feat)
+            else:
+                mesh_pred, pmap_pred, _, _ = model.infer(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
             num_images = batch_pmap.shape[0]
 
             if not infer_smpl:

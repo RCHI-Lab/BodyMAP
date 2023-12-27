@@ -107,7 +107,7 @@ def create_metric_dict(epoch=-1):
             }
 
 
-def PMMMetric(model, test_loader, writer=None, epoch=-1, pmap_norm=False, infer_pmap=False, infer_smpl=False):
+def PMMMetric(model, test_loader, writer=None, epoch=-1, pmap_norm=False, infer_pmap=False, infer_smpl=False, MOD1=None):
     dict_map = {
             'uncover' : create_metric_dict(epoch), 
             'cover1' :  create_metric_dict(epoch), 
@@ -120,13 +120,18 @@ def PMMMetric(model, test_loader, writer=None, epoch=-1, pmap_norm=False, infer_
 
     model.eval()
     with torch.no_grad():
-        for batch_pressure_images, batch_depth_images, batch_labels, batch_pmap, batch_verts, batch_names in tqdm(iter(test_loader), desc='metric'):
+        for _, batch_pressure_images, _, batch_depth_images, batch_labels, batch_pmap, batch_verts, batch_names in tqdm(iter(test_loader), desc='metric'):
             batch_depth_images = batch_depth_images.to(DEVICE)
             batch_pressure_images = batch_pressure_images.to(DEVICE)
             batch_labels_copy = batch_labels.clone().to(DEVICE)
             batch_pmap = batch_pmap.to(DEVICE)            
 
-            batch_mesh_pred, batch_pmap_pred, _, _ = model.infer(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
+            if MOD1 is not None:
+                batch_mesh_pred, _, img_feat, _ = MOD1.infer(batch_depth_images.clone(), batch_pressure_images.clone(), batch_labels[:, 157:159].clone())
+                _, batch_pmap_pred, _, _ = model(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159], batch_mesh_pred['out_verts'].clone(), img_feat)
+            else:
+                batch_mesh_pred, batch_pmap_pred, _, _ = model.infer(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
+
             batch_labels = batch_labels.to(DEVICE)
             if infer_smpl:
                 batch_mesh_pred['out_joint_pos'] = batch_mesh_pred['out_joint_pos'].reshape(-1, 24, 3)

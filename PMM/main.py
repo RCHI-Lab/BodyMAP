@@ -1,4 +1,5 @@
 from PMMTrainer import PMMTrainer
+from WSTrainer import WSTrainer
 import os
 from constants import MODALITY_TO_FEATURE_SIZE, BASE_PATH
 import json
@@ -82,12 +83,21 @@ def parse_args(args):
     args['pmap_loss'] = args.get('pmap_loss', True)
     args['smpl_loss'] = args.get('smpl_loss', True)
 
+    # WS setup
+    args['infer_smpl'] = args.get('infer_smpl', False)
+    args['infer_pmap'] = args.get('infer_pmap', False)
+    args['load_MOD1_path'] = args.get('load_MOD1_path', None)
+    args['WS'] = args.get('WS', False)
+
     # loss weights setup
     args['pmap_loss_mult'] = args.get('pmap_loss_mult', 100)
     args['lambda_pmap_loss'] = args.get('lambda_pmap_loss', 0)
     args['lambda_contact_loss'] = args.get('lambda_contact_loss', 0)
-    args['lambda_v2v_loss'] = args.get('lambda_v2v_loss', 0.0)
     args['lambda_root_angle'] = args.get('lambda_root_angle', 1.0)
+    args['lambda_smpl_loss'] = args.get('lambda_smpl_loss', 0.0)
+    args['lambda_v2v_loss'] = args.get('lambda_v2v_loss', 0.0)
+    args['lambda_proj_loss'] = args.get('lambda_proj_loss', 0.0)
+    args['lambda_preg_loss'] = args.get('lambda_preg_loss', 0.0)
 
     # epochs settings setup
     args['epochs_metric'] = 25
@@ -113,7 +123,10 @@ if __name__ == '__main__':
     
     args = parse_args(exp)
 
-    trainer = PMMTrainer(args)
+    if args.get('WS', False):
+        trainer = WSTrainer(args)
+    else:
+        trainer = PMMTrainer(args)
     model = trainer.train_model()
     print ()
 
