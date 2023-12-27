@@ -100,7 +100,7 @@ The config files for BodyMAP-PointNet and BodyMAP-Conv are provided in the model
 The models are saved in ```PMM_exps/normal``` by default. (outside of BodyMAP directory)
 
 
-## Model Training without supervision 
+## Model Training Without Supervision 
 
 1. Train mesh regressor used for BodyMAP-WS
 ```python
