@@ -46,13 +46,24 @@ if __name__ == '__main__':
                                 False, False, training=False)
 
     model.eval()
+    if opts['WS']:
+        MOD1 = torch.load(opts['load_MOD1_path']).to(DEVICE)
+        MOD1.eval()
+    else:
+        MOD1 = None
+
     print (f'Starting testing for {opts["name"]}')
     with torch.no_grad():
-        for batch_pressure_images, batch_depth_images, batch_labels, _, _, batch_names in tqdm(iter(test_loader), desc='model test run'):
+        for _, batch_pressure_images, _, batch_depth_images, batch_labels, _, _, batch_names in tqdm(iter(test_loader), desc='model test run'):
             batch_depth_images = batch_depth_images.to(DEVICE)
             batch_pressure_images = batch_pressure_images.to(DEVICE)
 
-            batch_mesh_pred, batch_pmap_pred, _, _ = model.infer(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
+            if MOD1 is not None:
+                batch_mesh_pred, batch_pmap_pred, _, _ = model.infer(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
+            else:
+                batch_mesh_pred, _, img_feat, _ = MOD1.infer(batch_depth_images.clone(), batch_pressure_images.clone(), batch_labels[:, 157:159].clone())
+                _, batch_pmap_pred, _, _ = model(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159], batch_mesh_pred['out_verts'].clone(), img_feat)
+
             batch_mesh_pred['out_joint_pos'] = batch_mesh_pred['out_joint_pos'].reshape(-1, 24, 3)
 
             if opts['normalize_pressure']:
