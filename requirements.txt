@@ -1,0 +1,15 @@
+chumpy
+imageio
+imageio-ffmpeg
+matplotlib
+numpy
+opencv-python
+Pillow
+pyglet
+pyrender==0.1.45
+scipy
+smplpytorch
+tensorboard
+torch
+torchvision
+trimesh

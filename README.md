@@ -7,9 +7,14 @@ BodyMAP leverages a depth and pressure image of a person in bed covered by blank
 <img src="assets/intro_main.png" alt="BodyPressure"/>
 </p> 
 
-## Trained Models 
+## Installation
 
-The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for research purposes. ([Link](Public drive link: TODO))
+1. Install requirements
+```
+pip install -r requirements.txt
+```
+
+2. Follow instructions from [shapy](https://github.com/muelea/shapy/blob/master/documentation/INSTALL.md#code) for shape metrics calculation. (Optional)
 
 ## Data Setup 
 
@@ -89,7 +94,7 @@ The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for res
 
 ## Model Training 
 
-* ```cd BodyMAP/PMM```
+* ```cd PMM```
 
 ```
 python main.py FULL_PATH_TO_MODEL_CONFIG
@@ -103,14 +108,14 @@ The models are saved in ```PMM_exps/normal``` by default. (outside of BodyMAP di
 ## Model Training Without Supervision 
 
 1. Train mesh regressor used for BodyMAP-WS
-```python
-cd BodyMAP/PMM python main.py ../model_config/WS_mesh.json
+```
+cd PMM python main.py ../model_config/WS_mesh.json
 ```
 
 2. Update path of saved model weights in model_config/WS_Pressure.json file.
 
 3. Train BodyMAP-WS: 3D pressure map regressor
-```python
+```
 python main.py ../model_config/WS_Pressure.json
 ```
 The models are saved in ```PMM_exps/normal``` by default. (outside of BodyMAP directory)
@@ -118,15 +123,15 @@ The models are saved in ```PMM_exps/normal``` by default. (outside of BodyMAP di
 ## Model Testing 
 
 1. Save model inferences on the real data 
-```python
-cd BodyMAP/PMM && python save_inference.py --model_path FULL_PATH_TO_MODEL_WEIGHTS --opts_path FULL_PATH_TO_MODEL_EXP_JSON --save_path FULL_PATH_TO_SAVE_INFERENCES
+```
+cd PMM && python save_inference.py --model_path FULL_PATH_TO_MODEL_WEIGHTS --opts_path FULL_PATH_TO_MODEL_EXP_JSON --save_path FULL_PATH_TO_SAVE_INFERENCES
 ```
 * model_path: Full path of model weights. 
 * opts_path: Full path of the exp.json file created when model is trained.
 * save_path: Full path of the directory to save model inferences.
 
 2. Calculate 3D Pose, 3D Shape and 3D Pressure Map metrics. 
-```python
+```
 cd ../scripts && python metrics.py --files_dir FULL_PATH_OF_SAVED_RESULTS_DIR --save_path FULL_PATH_TO_SAVE_METRICS
 ```
 * files_dir: Full path of the directory where model inferences are saved (save_path argument from step 1). 
@@ -135,8 +140,8 @@ cd ../scripts && python metrics.py --files_dir FULL_PATH_OF_SAVED_RESULTS_DIR --
 ## Visualization
 
 To visualize body mesh and 3D applied pressure map for the SLP dataset:
-```python 
-cd BodyMAP/scripts && python plot.py --save_path FULL_PATH_TO_SAVE_VIZ --cover_type COVER_TYPE --p_idx PARTICIPANT_IDX --pose_idx POSE_IDX --viz_type image --files_dir FULL_PATH_OF_MODEL_INFEFERENCES 
+```
+cd scripts && python plot.py --save_path FULL_PATH_TO_SAVE_VIZ --cover_type COVER_TYPE --p_idx PARTICIPANT_IDX --pose_idx POSE_IDX --viz_type image --files_dir FULL_PATH_OF_MODEL_INFEFERENCES 
 ```
 * save_path: Full path of the directory to save visualization results. 
 * cover_type: Blanket cover configuration. Default: cover1. Choices: uncover, cover1 and cover2. 
@@ -149,6 +154,9 @@ cd BodyMAP/scripts && python plot.py --save_path FULL_PATH_TO_SAVE_VIZ --cover_t
     <img src="assets/Model_cover1_081_1.png" alt="viz for pariticpant: 81, pose: 1, cover_type: cover1">
 </p>
 
+## Trained Models 
+
+The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for research purposes. ([Link](Public drive link: TODO))
 
 ## Acknowledgements
 
