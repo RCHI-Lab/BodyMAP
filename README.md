@@ -164,7 +164,7 @@ We are grateful for the [BodyPressure](https://github.com/Healthcare-Robotics/Bo
 
 ## Authors 
 
-* [Abhishek Tandon](https://github.com/Tandon-A)
 * [Anujraaj Goyal](https://github.com/timbektu)
+* [Abhishek Tandon](https://github.com/Tandon-A)
 * [Zackory Erickson](https://github.com/Zackory)
 
