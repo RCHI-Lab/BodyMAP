@@ -27,7 +27,7 @@ def prepare_transforms(image_size_type, is_affine, is_erase, train=False):
 
 def prepare_loader(data_path, data_files, batch_size, image_size_type, \
                     exp_type, normalize_pressure, normalize_depth, \
-                    is_affine, is_erase, training=False):
+                    is_affine, is_erase, training=False, train_on_real='all'):
     data_transforms = prepare_transforms(image_size_type=image_size_type, 
                                         is_affine=is_affine, 
                                         is_erase=is_erase, 
@@ -40,7 +40,8 @@ def prepare_loader(data_path, data_files, batch_size, image_size_type, \
                                 normalize_pressure=normalize_pressure, 
                                 normalize_depth=normalize_depth, 
                                 training=training, 
-                                is_affine=is_affine)
+                                is_affine=is_affine, 
+                                train_on_real=train_on_real)
     
     # shuffle, drop_last should be True for training case
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=training, drop_last=training, num_workers=4)
@@ -48,7 +49,7 @@ def prepare_loader(data_path, data_files, batch_size, image_size_type, \
 
 
 def prepare_dataloaders(data_path, train_files, val_files, batch_size, image_size_type, \
-                        exp_type, normalize_pressure, normalize_depth, is_affine, is_erase):
+                        exp_type, normalize_pressure, normalize_depth, is_affine, is_erase, train_on_real='all'):
     print ('Starting train dataset prepare')
     train_loader, train_dataset = prepare_loader(data_path=data_path, 
                                                 data_files=train_files, 
@@ -59,7 +60,8 @@ def prepare_dataloaders(data_path, train_files, val_files, batch_size, image_siz
                                                 normalize_depth=normalize_depth,
                                                 is_affine=is_affine, 
                                                 is_erase=is_erase, 
-                                                training=True)
+                                                training=True, 
+                                                train_on_real=train_on_real)
     print ('Prepared train dataset')
     print ()
     
@@ -73,7 +75,8 @@ def prepare_dataloaders(data_path, train_files, val_files, batch_size, image_siz
                                             normalize_depth=normalize_depth,
                                             is_affine=False, 
                                             is_erase=False, 
-                                            training=False)
+                                            training=False, 
+                                            train_on_real='all')
     print ('Prepared val dataset')
     print ()
 
@@ -83,7 +86,7 @@ def prepare_dataloaders(data_path, train_files, val_files, batch_size, image_siz
 class PMMTrainerDataset(Dataset):
 
     def __init__(self, data_path, data_files, transforms, exp_type, \
-                normalize_pressure, normalize_depth, training, is_affine):
+                normalize_pressure, normalize_depth, training, is_affine, train_on_real):
         super(PMMTrainerDataset, self).__init__()
         self.data_path = data_path
         self.transforms = transforms
@@ -93,6 +96,7 @@ class PMMTrainerDataset(Dataset):
         self.training = training
         self.load_verts = (not training)
         self.is_affine = is_affine
+        self.train_on_real = train_on_real
 
         self._prepare_dataset(data_files)
     
@@ -125,7 +129,7 @@ class PMMTrainerDataset(Dataset):
             data_lines = utils.load_data_lines(real_file)
             for cover_str in ['uncover', 'cover1', 'cover2']:
                 data_pressure_x, data_depth_x, data_label_y, data_pmap_y, data_verts_y, data_names_y = \
-                    SLPDataset(self.data_path).prepare_dataset(data_lines, cover_str, load_verts=self.load_verts)
+                    SLPDataset(self.data_path).prepare_dataset(data_lines, cover_str, load_verts=self.load_verts, train_on_real=self.train_on_real)
                 self._concat_data_returns((data_pressure_x, data_depth_x, data_label_y, data_pmap_y, data_verts_y, data_names_y))
             
             if self.exp_type == 'overfit':

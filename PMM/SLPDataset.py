@@ -23,7 +23,7 @@ class SLPDataset():
         self.gender_female = [1, 0]
         self.pm_adjust_cm = [-1, 4]
 
-    def prepare_dataset(self, data_lines, cover_str, load_verts=False, for_infer=False):
+    def prepare_dataset(self, data_lines, cover_str, load_verts=False, for_infer=False, train_on_real='all'):
         pressure_x = []
         depth_x = []
         label_y = []
@@ -36,7 +36,20 @@ class SLPDataset():
 
         slp_T_cam_all = np.load(os.path.join(self.slp_real_cleaned_data_dir, 'slp_T_cam_0to102.npy'), allow_pickle=True) # 102, 45, 3
         depth_all = np.load(os.path.join(self.slp_real_cleaned_data_dir, f'depth_{cover_str}_cleaned_0to102.npy'), allow_pickle=True) # 102, 45, 128, 54
-        
+
+        if train_on_real == 'all':
+            start_pose = 0
+            stop_pose = self.load_per_person
+        elif train_on_real == 'lay':
+            start_pose = 0
+            stop_pose = 15 
+        elif train_on_real == 'side':
+            start_pose = 15
+            stop_pose = self.load_per_person
+        else:
+            print (f'ERROR: not implemented train on real mode: {train_on_real}')
+            exit(-1)
+
         for person_num_str in data_lines:
             body_mass = phys_arr[int(person_num_str) -1][0]
             body_height = phys_arr[int(person_num_str) - 1][1]
@@ -52,7 +65,7 @@ class SLPDataset():
             pmap_path = os.path.join(self.pmap_data_dir, person_num_str, cover_str)
             verts_path = os.path.join(self.verts_data_dir, person_num_str, cover_str)
 
-            for i in range(self.load_per_person):
+            for i in range(start_pose, stop_pose, 1):
                 pressure_image = np.load(os.path.join(pressure_path, f'{(i+1):06d}.npy')).astype(np.float) # 192, 84
                 pressure_image = pressure_image[0:191 - self.pm_adjust_cm[1], 0:84]
                 if np.shape(pressure_image)[0] < 190:
@@ -105,7 +118,7 @@ class SLPDataset():
                     verts_y.append(verts)
 
                 
-                if for_infer and i >= 1:
+                if for_infer and i >= start_pose + 1:
                     break
             
             if for_infer and len(names_y) >= 10:

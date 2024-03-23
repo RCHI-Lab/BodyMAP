@@ -58,7 +58,7 @@ if __name__ == '__main__':
             batch_depth_images = batch_depth_images.to(DEVICE)
             batch_pressure_images = batch_pressure_images.to(DEVICE)
 
-            if MOD1 is not None:
+            if MOD1 is None:
                 batch_mesh_pred, batch_pmap_pred, _, _ = model.infer(batch_depth_images, batch_pressure_images, batch_labels[:, 157:159])
             else:
                 batch_mesh_pred, _, img_feat, _ = MOD1.infer(batch_depth_images.clone(), batch_pressure_images.clone(), batch_labels[:, 157:159].clone())

@@ -29,7 +29,7 @@ def parse_args(args):
         args['synth_val_file'] = os.path.join(BASE_PATH, "BodyMAP/data_files/synth_overfitting.txt")
         args['real_train_file'] = os.path.join(BASE_PATH, "BodyMAP/data_files/real_overfitting.txt")
         args['real_val_file'] = os.path.join(BASE_PATH, "BodyMAP/data_files/real_overfitting.txt")
-        args['epochs'] = args.get('epochs', 10)
+        args['epochs'] = args.get('epochs', 100)
     elif args['exp_type'] == 'normal' and args['exp_run'] == 'val': 
         # in this setting we use 1 to 70 for train and 70 to 80 for val (real), 1 to 70 for train and 70 to 80 for val (synth)
         args['synth_train_file'] = os.path.join(BASE_PATH, "BodyMAP/data_files/synth_train.txt")
@@ -39,8 +39,8 @@ def parse_args(args):
         args['epochs'] = args.get('epochs', 50)
     elif args['exp_type'] == 'normal' and args['exp_run'] == 'full-train-test':
         # in this setting we use 1 to 80 for train, 80 to 102 for val/test (real), all synth for train 
-        args['synth_train_file'] = os.path.join(BASE_PATH, "BodyMAP/data_files/synth_all.txt")
-        args['synth_val_file'] = os.path.join(BASE_PATH, "BodyMAP/data_files/synth_val.txt")
+        args['synth_train_file'] = args.get('synth_train_file', os.path.join(BASE_PATH, "BodyMAP/data_files/synth_all.txt"))
+        args['synth_val_file'] = args.get('synth_val_file', os.path.join(BASE_PATH, "BodyMAP/data_files/synth_val.txt"))
         args['real_train_file'] = os.path.join(BASE_PATH, "BodyMAP/data_files/real_train.txt")
         args['real_val_file'] = os.path.join(BASE_PATH, "BodyMAP/data_files/real_val.txt")
         args['epochs'] = args.get('epochs', 100)
@@ -55,6 +55,7 @@ def parse_args(args):
     args['normalize_depth'] = args.get('normalize_depth', True)
     args['is_affine'] = args.get('is_affine', True)
     args['is_erase'] = args.get('is_erase', True)
+    args['train_on_real'] = args.get('train_on_real', 'all')
     
     # model setup
     args['indexing_mode'] = args.get('indexing_mode', 9)
@@ -100,7 +101,7 @@ def parse_args(args):
     args['lambda_preg_loss'] = args.get('lambda_preg_loss', 0.0)
 
     # epochs settings setup
-    args['epochs_metric'] = 25
+    args['epochs_metric'] = args.get('epochs_metric', 25)
     args['epochs_save'] = 10
     args['epochs_val_viz'] = args['epochs_metric'] 
 

@@ -48,7 +48,8 @@ class PMMTrainer():
                                                                 self.args['batch_size'], self.args['image_size_type'], \
                                                                 self.args['exp_type'], \
                                                                 self.args['normalize_pressure'], self.args['normalize_depth'], \
-                                                                self.args['is_affine'], self.args['is_erase']) 
+                                                                self.args['is_affine'], self.args['is_erase'], \
+                                                                self.args['train_on_real'])
         
         self.infer_loader, _ = prepare_inferloader(self.args['data_path'], (self.args['real_val_file'], self.args['synth_val_file']), \
                                             self.args['batch_size'], self.args['image_size_type'], \
