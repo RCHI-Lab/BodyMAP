@@ -162,9 +162,25 @@ The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for res
 
 We are grateful for the [BodyPressure](https://github.com/Healthcare-Robotics/BodyPressure) project from which we have borrowed specific elements of the code base.
 
+## :white_check_mark: Cite
+
+If you find **BodyMAP** useful for your your research and applications, please kindly cite using this BibTeX:
+
+```
+@inproceedings{tandon2024bodymap,
+  title={BodyMAP-Jointly Predicting Body Mesh and 3D Applied Pressure Map for People in Bed},
+  author={Tandon, Abhishek and Goyal, Anujraaj and Clever, Henry M and Erickson, Zackory},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={2480--2489},
+  year={2024}
+}
+```
+
+
 ## Authors 
 
 * [Anujraaj Goyal](https://github.com/timbektu)
 * [Abhishek Tandon](https://github.com/Tandon-A)
+* [Henry Clever](https://github.com/henryclever)
 * [Zackory Erickson](https://github.com/Zackory)
 
