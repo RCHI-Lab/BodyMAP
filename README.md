@@ -1,5 +1,7 @@
 # BodyMAP
 
+<a href="https://bodymap3d.github.io/"><img src="https://img.shields.io/website?down_color=lightgrey&down_message=offline&label=Project%20Page&up_color=lightgreen&up_message=online&url=https://bodymap3d.github.io/" height=22></a>
+<a href="https://openaccess.thecvf.com/content/CVPR2024/papers/Tandon_BodyMAP_-_Jointly_Predicting_Body_Mesh_and_3D_Applied_Pressure_CVPR_2024_paper.pdf"><img src="https://img.shields.io/badge/CVPR 2024 Paper-BodyMAP-b31b1b.svg" height=22></a>
 
 BodyMAP leverages a depth and pressure image of a person in bed covered by blankets to jointly predict the body mesh (3D pose & shape) and a 3D pressure map of pressure distributed along the human body.
 
