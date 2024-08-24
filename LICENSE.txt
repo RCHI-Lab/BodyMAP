@@ -5,7 +5,7 @@ SOFTWARE, MODEL AND DATASET LICENSE AGREEMENT
 
 This license *ONLY APPLIES* to our code and not to the terms of third party software. See third party software below for details.
 
-To download any of the BodyMAP data, BodyMAP code and BodyMAP model, hereby reffered to  as BodyMAP files, and use it on computers owned, leased or otherwise controlled by you and/or your organisation;
+To download any of the BodyMAP data, BodyMAP code and BodyMAP model, hereby referred to  as BodyMAP files, and use it on computers owned, leased or otherwise controlled by you and/or your organisation;
 To use the BodyMAP files for the sole purpose of performing non-commercial scientific research, non-commercial education, or non-commercial projects.
 Any other use, in particular any use for commercial purposes, is prohibited. This includes, without limitation, incorporation in a commercial product, use in a commercial service, use for creating training data for a commercial product, for commercial analysis, or production of other artifacts for commercial purposes. 
 
