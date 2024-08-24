@@ -16,17 +16,17 @@ BodyMAP leverages a depth and pressure image of a person in bed covered by blank
 pip install -r requirements.txt
 ```
 
-2. Follow instructions from [shapy](https://github.com/muelea/shapy/blob/master/documentation/INSTALL.md#code) for shape metrics calculation. (Optional)
+2. Follow instructions from [shapy](https://github.com/muelea/shapy/blob/master/documentation/INSTALL.md#code) for shape metrics calculation. (For 3D shape metrics calculation)
 
 ## Data Setup 
 
 1. Follow instructions from [BodyPressure](https://github.com/Healthcare-Robotics/BodyPressure?tab=readme-ov-file#download-data) to download and setup SLP dataset and BodyPressureSD dataset. 
 
-2. Download the 3D pressure maps for the two datasets and put in ```BodyPressure/data_BP```. ([Link](Public drive link: TODO))
+2. Download the 3D pressure maps for the two datasets and put in ```BodyPressure/data_BP```. ([Link](https://drive.google.com/file/d/1eLEQC2ZFWRHZ9qkyRBIFIIatwB6T_TRp/view?usp=sharing)). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
 
 3. Download SMPL human models. ([Link](https://smpl.is.tue.mpg.de/en)). Place the models (SMPL_MALE.pkl and SMPL_FEAMLE.pkl) in ```BodyMAP/smpl_models/smpl``` directory.
 
-4. Download the parsed data (part segmented faces indexes, v2vP 1EA and v2vP 2EA indexes) and put in ```BodyPressure/data_BP```. ([Link](Public drive link: TODO))
+4. Download the parsed data (part segmented faces indexes, v2vP 1EA and v2vP 2EA indexes) and put in ```BodyPressure/data_BP```. ([Link](https://drive.google.com/file/d/19faayh5_wnssFsiDQuWqbcIX39MzMXJ7/view?usp=sharing)). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
 
 5. Change BASE_PATH constant in [constants.py](https://github.com/RCHI-Lab/BodyMAP/blob/main/PMM/constants.py#L43) based on your file structrure. The BASE_PATH folder should look like:
 
@@ -158,7 +158,7 @@ cd scripts && python plot.py --save_path FULL_PATH_TO_SAVE_VIZ --cover_type COVE
 
 ## Trained Models 
 
-The trained BodyMAP-PointNet model and BodyMAP-Conv models are available for research purposes. ([Link](Public drive link: TODO))
+The trained BodyMAP-PointNet model is available for research purposes. ([Link](https://drive.google.com/file/d/1wHNglojalqnfnMn8CXYeH8LL3DJDEwqH/view?usp=sharing)) These model weights are released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
 
 ## Acknowledgements
 
