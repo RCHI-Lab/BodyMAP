@@ -20,15 +20,17 @@ pip install -r requirements.txt
 
 ## Data Setup 
 
-1. Follow instructions from [BodyPressure](https://github.com/Healthcare-Robotics/BodyPressure?tab=readme-ov-file#download-data) to download and setup SLP dataset and BodyPressureSD dataset. 
+1. Follow instructions from [BodyPressure](https://github.com/Healthcare-Robotics/BodyPressure?tab=readme-ov-file#download-data) to download and setup SLP dataset and BodyPressureSD dataset.
 
-2. Download the 3D pressure maps for the two datasets and put in ```BodyPressure/data_BP```. ([Link](https://drive.google.com/file/d/1eLEQC2ZFWRHZ9qkyRBIFIIatwB6T_TRp/view?usp=sharing)). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
+2. Download the SLP_SMPL_fits data from [Link](https://drive.google.com/file/d/1LiE4gjszpMsrApHuXoE5DMlMFMphpEoM/view?usp=sharing). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
 
-3. Download SMPL human models. ([Link](https://smpl.is.tue.mpg.de/en)). Place the models (SMPL_MALE.pkl and SMPL_FEAMLE.pkl) in ```BodyMAP/smpl_models/smpl``` directory.
+3. Download the 3D pressure maps for the two datasets and put in ```BodyPressure/data_BP```. ([Link](https://drive.google.com/file/d/1eLEQC2ZFWRHZ9qkyRBIFIIatwB6T_TRp/view?usp=sharing)). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
 
-4. Download the parsed data (part segmented faces indexes, v2vP 1EA and v2vP 2EA indexes) and put in ```BodyPressure/data_BP```. ([Link](https://drive.google.com/file/d/19faayh5_wnssFsiDQuWqbcIX39MzMXJ7/view?usp=sharing)). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
+4. Download SMPL human models. ([Link](https://smpl.is.tue.mpg.de/en)). Place the models (SMPL_MALE.pkl and SMPL_FEAMLE.pkl) in ```BodyMAP/smpl_models/smpl``` directory.
 
-5. Change BASE_PATH constant in [constants.py](https://github.com/RCHI-Lab/BodyMAP/blob/main/PMM/constants.py#L43) based on your file structrure. The BASE_PATH folder should look like:
+5. Download the parsed data (part segmented faces indexes, v2vP 1EA and v2vP 2EA indexes) and put in ```BodyPressure/data_BP```. ([Link](https://drive.google.com/file/d/19faayh5_wnssFsiDQuWqbcIX39MzMXJ7/view?usp=sharing)). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
+
+6. Change BASE_PATH constant in [constants.py](https://github.com/RCHI-Lab/BodyMAP/blob/main/PMM/constants.py#L43) based on your file structrure. The BASE_PATH folder should look like:
 
     ```
     BodyPressure
