@@ -160,7 +160,10 @@ cd scripts && python plot.py --save_path FULL_PATH_TO_SAVE_VIZ --cover_type COVE
 
 ## Trained Models 
 
-The trained BodyMAP-PointNet model is available for research purposes. ([Link](https://drive.google.com/file/d/1wHNglojalqnfnMn8CXYeH8LL3DJDEwqH/view?usp=sharing)) These model weights are released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
+The trained BodyMAP-PointNet models are available for research purposes. These model weights are released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
+
+* BodyMAP-PointNet, trained on both depth and pressure image modalities. ([Link](https://drive.google.com/file/d/1wHNglojalqnfnMn8CXYeH8LL3DJDEwqH/view?usp=sharing))
+* BodyMAP-PointNet, trained on only depth modality. ([Link](https://drive.google.com/file/d/18826WQmCfH7rhDLRwfvm_5cAqN-m7K2R/view?usp=sharing))
 
 ## Acknowledgements
 
