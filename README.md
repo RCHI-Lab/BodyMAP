@@ -169,6 +169,8 @@ The trained BodyMAP-PointNet models are available for research purposes. These m
 
 We are grateful for the [BodyPressure](https://github.com/Healthcare-Robotics/BodyPressure) project from which we have borrowed specific elements of the code base.
 
+We are also grateful to [Simon](https://github.com/simonseo) for the discussions and many late night reviews. This work wouldn't have been possible without him.
+
 ## :white_check_mark: Cite
 
 If you find **BodyMAP** useful for your your research and applications, please kindly cite using this BibTeX:
