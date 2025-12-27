@@ -24,7 +24,7 @@ pip install -r requirements.txt
 
 2. Download the SLP_SMPL_fits data from [Link](https://drive.google.com/file/d/1LiE4gjszpMsrApHuXoE5DMlMFMphpEoM/view?usp=sharing). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
 
-3. Download the 3D pressure maps for the two datasets and put in ```BodyPressure/data_BP```. ([Link](https://drive.google.com/file/d/1eLEQC2ZFWRHZ9qkyRBIFIIatwB6T_TRp/view?usp=sharing)). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
+3. Download the 3D pressure maps for the two datasets and put in ```BodyPressure/data_BP```. ([Link](https://drive.google.com/file/d/1WoO7kPdsTQTHagxpVvS9_o6EO6CRMvdA/view?usp=sharing)). This dataset is released for only **non-commercial purposes**, please check [license file](https://github.com/RCHI-Lab/BodyMAP/blob/main/LICENSE.txt) for details.
 
 4. Download SMPL human models. ([Link](https://smpl.is.tue.mpg.de/en)). Place the models (SMPL_MALE.pkl and SMPL_FEAMLE.pkl) in ```BodyMAP/smpl_models/smpl``` directory.
 
